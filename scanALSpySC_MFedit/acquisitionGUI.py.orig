@@ -1,0 +1,220 @@
+import os
+
+import time
+import pandas as pd
+
+from PyQt5 import QtWidgets
+from acquisitionWindow import  Ui_MainWindow
+
+from logger import XStream
+import json
+
+<<<<<<< HEAD
+#   from readTDC import TDC
+=======
+# from write_ports import PhaseShifter
+>>>>>>> b86452e8426edfcb82c50a995aa4ec588d45e93d
+from prodigy_remote import ProdigyRemote
+from write_ports import PhaseShifter
+
+
+
+class TDC():
+    def init(self): pass
+    def deinit(self): pass
+    def open_callback_pipe(self): pass
+
+
+class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
+    
+    def __init__(self, DEBUG=True):
+        super(AcquisitionUI, self).__init__()
+
+        self.setupUi(self)
+        self.DEBUG = DEBUG
+
+        ### Logging
+        if not self.DEBUG:
+            XStream.stdout().messageWritten.connect( self.logBrowser.insertPlainText )
+            XStream.stderr().messageWritten.connect( self.logBrowser.insertPlainText )
+
+        ### Open and Save Files
+        self.pushBrowseFolder.clicked.connect(self.selectDirectory)
+
+        self.dataFolder = 'C:\\Data\\TwoBunch19'
+        self.dataFolderLineEdit.setText(self.dataFolder)
+
+        dateTime = time.localtime()
+        self.dataFileName = '%02i%02i%02i' % (dateTime.tm_year - 2000, dateTime.tm_mon, dateTime.tm_mday)
+        self.fileNameLineEdit.setText(self.dataFileName)
+
+        self.runningValue = 1
+        self.runningNoSpinBox.setValue(self.runningValue)
+
+        self.createFileName()
+        self.checkExistingPath()
+
+
+#       os.mkdir(self.path)
+
+
+
+        ### Devices
+
+        self.tdc = TDC()
+#       self.ps = PhaseShifter()
+#       self.remote = ProdigyRemote()
+
+        ### TDC Section
+        self.pushInitTDC.clicked.connect(  self.initTDC   )
+        self.pushDeinitTDC.clicked.connect(self.deinitTDC ) 
+
+        ### Prodigy Section
+        self.pushConnectProdigy.clicked.connect(    self.connectProdigy    )
+        self.pushDisconnectProdigy.clicked.connect( self.disconnectProdigy ) 
+        self.pushSetSafeState.clicked.connect(      self.setSafeState      )
+
+<<<<<<< HEAD
+        self.pushSaveVoltages.clicked.connect( self.saveVoltages ) 
+        self.pushLoadVoltages.clicked.connect( self.loadVoltages ) 
+=======
+
+        ### Voltages
+
+        for item in ['"HighAngularDispersion"',
+                     '"HighMagnification"',
+                     '"HighMagnification2"',
+                     '"ImagingMode"',
+                     '"LargeArea"',
+                     '"LowAngularDispersion"',
+                     '"LowMagnification"',
+                     '"MediumAngularDispersion"',
+                     '"MediumArea"',
+                     '"MediumMagnification"',
+                     '"SmallArea"',
+                     '"SmallArea"',
+                     '"SmallArea2"',
+                     '"WideAngleMode"', ]:
+            self.lensModeComboBox.addItem(item)
+
+        for item in ['"10V"', '"100V"', '"400V"', '"1.5kV"', '"3.5kV"',]:
+            self.scanRangeComboBox.addItem(item)
+
+        self.voltKnobs ={
+                        '"LensMode"'                : self.lensModeComboBox,
+                        '"ScanRange"'               : self.scanRangeComboBox,
+                        '"Kinetic Energy"'          : self.kineticEnergySpinBox,
+                        '"Pass Energy"'             : self.passEnergySpinBox,
+                        '"Detector Voltage"'        : self.detectorVoltageSpinBox,
+                        '"DLD Voltage"'             : self.dLDVoltageSpinBox,
+                        '"Bias Voltage Electrons"'  : self.biasElectronsSpinBox,
+                        '"Coil Current"'            : self.coilCurrentDoubleSpinBox,
+#                
+                        '"Deflection X"'            : self.deflectionXDoubleSpinBox,
+                        '"Deflection Y"'            : self.deflectionYDoubleSpinBox,
+                        '"L1"'                      : self.l1DoubleSpinBox,
+                        '"Pre Defl X"'              : self.preDeflXDoubleSpinBox,
+                        '"Pre Defl Y"'              : self.preDeflYDoubleSpinBox,
+                        '"Stigmator"'               : self.stigmatorDoubleSpinBox,
+                        }
+        
+
+        self.voltDict = {k: self.voltKnobs[k].value() + 4 if hasattr(self.voltKnobs[k], 'value') 
+                                                      else self.voltKnobs[k].currentText()
+                            for k in self.voltKnobs }
+        print (self.voltDict )
+
+        for k in self.voltDict:
+            v = self.voltDict[k]
+            if hasattr(self.voltKnobs[k], 'setValue'):
+                self.voltKnobs[k].setValue(v)
+            else:
+                print(k, v)
+                self.voltKnobs[k].setCurrentText(v)
+
+        
+>>>>>>> b86452e8426edfcb82c50a995aa4ec588d45e93d
+
+    ### Handle Closing
+    def closeEvent(self, event):
+
+        if self.remote.connected:
+            self.remote.disconnect()
+
+#       if self.tdc.is_initialized:
+#           self.tdc.deinit()
+
+
+    ### Files and Directory
+
+
+    def createFileName(self):
+        path = os.path.join(self.dataFolder, self.dataFileName)
+        path += '-%03i' % (self.runningNoSpinBox.value() ) 
+        self.path = path
+        print(path)
+
+    def checkExistingPath(self):
+        file_exists = os.path.exists(self.path)
+        while file_exists:
+            self.runningValue += 1
+            self.runningNoSpinBox.setValue(self.runningValue)
+            self.createFileName()
+            file_exists = os.path.exists(self.path)
+
+    def selectDirectory(self):
+        self.dataFolder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open File', 'C:\\Data\\',
+                                                          )
+        self.dataFolderLineEdit.setText(self.dataFolder)
+
+
+    ### TDC Methods
+
+    def initTDC(self):
+        self.tdc.init()
+        self.tdc.open_callback_pipe()
+
+    def deinitTDC(self):
+        self.tdc.deinit()
+
+
+    ### Prodigy Remote Connection
+    
+    def connectProdigy(self):
+        if not self.remote.connected:
+            self.remote.connect()
+            self.remote.allParams = self.remote.getParams()
+
+    def disconnectProdigy(self):
+        if self.remote.connected:
+            self.remote.disconnect()
+
+    def applyVoltages(self):
+        if self.remote.connected:
+            self.remote.setVoltagesDirectly()    
+
+    def setSafeState(self):
+        if self.remote.connected:
+            self.remote.setSafeState()
+
+    def saveVoltages(self):
+        fname = QtWidgets.QFileDialog.getFilename(self, 'Save File', 'C:\\Data\\',
+                                                          )
+
+    def loadVoltages(self):
+        fname = QtWidgets.QFileDialog.getFilename(self, 'Open File', 'C:\\Data\\',
+                                                          )
+        
+
+
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+#   MainWindow = QtWidgets.QMainWindow()
+    ui = AcquisitionUI()
+    ui.show()
+#   ui.setupUi(MainWindow)
+#   MainWindow.show()
+    sys.exit(app.exec_())
