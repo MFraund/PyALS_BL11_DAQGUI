@@ -115,8 +115,8 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         #%% Devices
-        self.ini_file = '..\\..\\tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
-        self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
+        self.ini_file = 'tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
+        # self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
         
         self.tdc = scTDC.Device(inifilepath=self.ini_file,
                         autoinit=False) #TDC(debug=self.DEBUG)
