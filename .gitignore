@@ -1,0 +1,4 @@
+*.pyproject
+*.pyc
+*.autosave
+desktop.ini
