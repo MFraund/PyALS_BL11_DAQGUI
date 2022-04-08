@@ -2,11 +2,12 @@ import os
 
 import time
 import pandas as pd
+import numpy as np
 
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QTimer
-from acquisitionWindow2 import  Ui_MainWindow
+from PyQt5.QtCore import QTimer, QSettings
+from acquisitionWindow import  Ui_MainWindow
 
 from logger import XStream
 import json
@@ -76,6 +77,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         super(AcquisitionUI, self).__init__()
 
         self.setupUi(self)
+        self.settings = QSettings('AqcuisitionUI','GUI_Settings')
         self.DEBUG = debug
 
         ### Logging
@@ -89,7 +91,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
         ### Timer
         self.cps_timer = QTimer()
-        self.cps_timer.timeout.connect(self.update_counts)
+        # self.cps_timer.timeout.connect(self.update_counts)
         self.tStart = time.time()
         self.msecs_cur = 0
         self.msecs_old = 0
@@ -150,6 +152,20 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushSaveScan.clicked.connect( self.savePSScans)
         self.pushLoadScan.clicked.connect( self.loadPSScans)
         
+        #%% Manipulator Calibration Section
+        self.calDict = self.settings.value('CalDict')
+        # self.doubleSpinBox_CalAH.setValue(self.calDict['CalAH'])
+        # self.doubleSpinBox_CalAV.setValue(self.calDict['CalAV'])
+        # self.doubleSpinBox_CalBH.setValue(self.calDict['CalBH'])
+        # self.doubleSpinBox_CalBV.setValue(self.calDict['CalBV'])
+        
+        self.doubleSpinBox_CalAH.editingFinished.connect(self.Manipulator2Picomotor)
+        self.doubleSpinBox_CalAV.editingFinished.connect(self.Manipulator2Picomotor)
+        self.doubleSpinBox_CalBH.editingFinished.connect(self.Manipulator2Picomotor)
+        self.doubleSpinBox_CalBV.editingFinished.connect(self.Manipulator2Picomotor)
+        self.spinBox_DevH.editingFinished.connect(self.Manipulator2Picomotor)
+        self.spinBox_DevV.editingFinished.connect(self.Manipulator2Picomotor)
+        
         #%% Voltages
 
         for item in ['"LargeArea"',
@@ -197,9 +213,10 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
         
 
-    ### Handle Closing
+    #%% Handle Closing
     def closeEvent(self, event):
-
+        
+        self.settings.setValue('PicomotorCal', self.calDict)
         if self.remote.connected:
             self.remote.disconnect()
 
@@ -592,10 +609,41 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.estTimeLine.setText(str(totaltime) + ' s')
             
             
+    #%% Manip
     def Manipulator2Picomotor(self):
-        pass
+        #def some variables
+        CalAH = self.doubleSpinBox_CalAH.value()
+        CalAV = self.doubleSpinBox_CalAV.value()
+        CalBH = self.doubleSpinBox_CalBH.value()
+        CalBV = self.doubleSpinBox_CalBV.value()
+        
+        self.calDict = {'CalAH': CalAH, 'CalAV':CalAV, 'CalBH':CalBH, 'CalBV':CalBV}
+        self.settings.setValue('PicomotorCal', self.calDict)
+        
+        Hdev = self.spinBox_DevH.value()
+        Vdev = self.spinBox_DevV.value()
+        
+        calibration_matrix = [[CalAH, CalBH],
+                          [CalAV, CalBV]]
+        
+        A = np.array(calibration_matrix)
+        
+        deviation_matrix = [Hdev, Vdev]
+        
+        B = np.array(deviation_matrix)
+        
+        X = (0, 0)
+        try:
+            X = np.linalg.inv(A).dot(B)
+        except:
+            self.statusbar.showMessage('Singular Matrix')
+        
+        #making sure they are rounded
+        self.spinBox_StepA.setValue(int(X[0]))
+        self.spinBox_StepB.setValue(int(X[1]))
     
-    
+
+#%% Run GUI Section
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
