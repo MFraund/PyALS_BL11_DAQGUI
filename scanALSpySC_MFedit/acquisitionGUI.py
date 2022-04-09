@@ -11,6 +11,7 @@ from acquisitionWindow import  Ui_MainWindow
 
 from logger import XStream
 import json
+import pickle
 
 from ntplib import NTPClient
 from epics import PV
@@ -79,6 +80,8 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.settings = QSettings('AqcuisitionUI','GUI_Settings')
         self.DEBUG = debug
+        self.DAQdirectory = os.getcwd()
+        self.picklepath = os.path.join(self.DAQdirectory, 'DAQ_pickle')
 
         ### Logging
         if not self.DEBUG:
@@ -100,8 +103,13 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
         #%% Open and Save Files
         self.pushBrowseFolder.clicked.connect(self.selectDirectory)
-
         self.dataFolder = 'C:\\Data\\2021\\November\\Gessner\\Data'
+        # self.dataFolderLineEdit.setText(self.settings.value('dataFolder_text',type = str))
+        with open(self.picklepath, mode='rb') as f:
+            self.dataFolder = pickle.load(f)
+            
+
+
         self.dataFolderLineEdit.setText(self.dataFolder)
 
         dateTime = time.localtime()
@@ -110,7 +118,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.runningValue = 1
         self.runningNoSpinBox.setValue(self.runningValue)
-
+        
         self.createFileName()
         self.checkExistingPath()
 
@@ -153,7 +161,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushLoadScan.clicked.connect( self.loadPSScans)
         
         #%% Manipulator Calibration Section
-        self.calDict = self.settings.value('CalDict')
+        self.calDict = self.settings.value('CalDict', type=dict)
         # self.doubleSpinBox_CalAH.setValue(self.calDict['CalAH'])
         # self.doubleSpinBox_CalAV.setValue(self.calDict['CalAV'])
         # self.doubleSpinBox_CalBH.setValue(self.calDict['CalBH'])
@@ -217,11 +225,13 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         
         self.settings.setValue('PicomotorCal', self.calDict)
+        self.settings.setValue('dataFolder_text', self.dataFolder)
+        
         if self.remote.connected:
             self.remote.disconnect()
-
+        
         self.deinitTDC()
-
+        
 #       if self.tdc.is_initialized:
 #           self.tdc.deinit()
 
@@ -230,6 +240,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def createFileName(self):
+        self.dataFolder = self.dataFolderLineEdit.text()
         path = os.path.join(self.dataFolder, self.dataFileName)
         path += '-run%03i.h5' % (self.runningNoSpinBox.value() ) 
         self.path = path
@@ -253,6 +264,14 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.dataFolder = QtWidgets.QFileDialog.getExistingDirectory(self, 'Open File', 'C:\\Data\\',
                                                           )
         self.dataFolderLineEdit.setText(self.dataFolder)
+        
+        
+        with open(self.picklepath, mode='wb') as f:
+            pickle.dump(self.dataFolder, f)
+        # self.settings.setValue('dataFolder_text',self.dataFolder)
+        self.createFileName()
+        self.checkExistingPath()
+
 
     ### Count Timer
 
