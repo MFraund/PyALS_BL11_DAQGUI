@@ -81,7 +81,8 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.settings = QSettings('AqcuisitionUI','GUI_Settings')
         self.DEBUG = debug
         self.DAQdirectory = os.getcwd()
-        self.picklepath = os.path.join(self.DAQdirectory, 'DAQ_pickle')
+        
+        
 
         ### Logging
         if not self.DEBUG:
@@ -102,12 +103,15 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.dldev_old = 0
 
         #%% Open and Save Files
+        self.picklepath_dir = os.path.join(self.DAQdirectory, 'DAQ_pickle_dir')
         self.pushBrowseFolder.clicked.connect(self.selectDirectory)
         self.dataFolder = 'C:\\Data\\2021\\November\\Gessner\\Data'
         # self.dataFolderLineEdit.setText(self.settings.value('dataFolder_text',type = str))
-        with open(self.picklepath, mode='rb') as f:
+        with open(self.picklepath_dir, mode='rb') as f:
             self.dataFolder = pickle.load(f)
-            
+        
+
+        
 
 
         self.dataFolderLineEdit.setText(self.dataFolder)
@@ -147,6 +151,12 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushDisconnectProdigy.clicked.connect( self.disconnectProdigy ) 
         self.pushApplyVoltages.clicked.connect(     self.applyVoltages     )
         self.pushSetSafeState.clicked.connect(      self.setSafeState      )
+        
+        self.picklepath_volt = os.path.join(self.DAQdirectory, 'DAQ_pickle_volt')
+        
+        with open(self.picklepath_volt, mode='rb') as f_volt:
+            self.voltDict = pickle.load(f_volt)
+        self.updateVoltages()
 
         #%% Phase Shifter Section
         self.pushInitPhaseShifter.clicked.connect( self.initPhaseShifter)
@@ -159,13 +169,22 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.testPS.clicked.connect( self.stepthroughPhaseShifter)
         self.pushSaveScan.clicked.connect( self.savePSScans)
         self.pushLoadScan.clicked.connect( self.loadPSScans)
+        self.tableOfDelayRanges.cellChanged.connect(self.tableClick)
+        
+        self.acquisitionTimePerStepSecsSpinBox.valueChanged.connect(self.tableClick)
         
         #%% Manipulator Calibration Section
+        self.picklepath_cal = os.path.join(self.DAQdirectory, 'DAQ_pickle_cal')
         self.calDict = self.settings.value('CalDict', type=dict)
-        # self.doubleSpinBox_CalAH.setValue(self.calDict['CalAH'])
-        # self.doubleSpinBox_CalAV.setValue(self.calDict['CalAV'])
-        # self.doubleSpinBox_CalBH.setValue(self.calDict['CalBH'])
-        # self.doubleSpinBox_CalBV.setValue(self.calDict['CalBV'])
+        
+        with open(self.picklepath_cal, mode='rb') as f_cal:
+            self.calDict = pickle.load(f_cal)
+            
+        
+        self.doubleSpinBox_CalAV.setValue(self.calDict['CalAV'])
+        self.doubleSpinBox_CalAH.setValue(self.calDict['CalAH'])
+        self.doubleSpinBox_CalBH.setValue(self.calDict['CalBH'])
+        self.doubleSpinBox_CalBV.setValue(self.calDict['CalBV'])
         
         self.doubleSpinBox_CalAH.editingFinished.connect(self.Manipulator2Picomotor)
         self.doubleSpinBox_CalAV.editingFinished.connect(self.Manipulator2Picomotor)
@@ -227,6 +246,10 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.settings.setValue('PicomotorCal', self.calDict)
         self.settings.setValue('dataFolder_text', self.dataFolder)
         
+        with open(self.picklepath_volt, mode='wb') as f_volt:
+            pickle.dump(self.voltDict, f_volt)
+        
+        
         if self.remote.connected:
             self.remote.disconnect()
         
@@ -266,7 +289,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.dataFolderLineEdit.setText(self.dataFolder)
         
         
-        with open(self.picklepath, mode='wb') as f:
+        with open(self.picklepath_dir, mode='wb') as f:
             pickle.dump(self.dataFolder, f)
         # self.settings.setValue('dataFolder_text',self.dataFolder)
         self.createFileName()
@@ -327,7 +350,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     def selectIniFile(self):
-        self.ini_file, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', 'C:\\Data\\2021\\November\\Gessner',
+        self.ini_file, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', self.dataFolder,
                                                           )
         self.iniFileLineEdit.setText(self.ini_file)
         self.tdc.inifile = self.ini_file
@@ -366,6 +389,12 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.voltDict = {k: self.voltKnobs[k].value() if hasattr(self.voltKnobs[k], 'value') 
                                                       else self.voltKnobs[k].currentText()
                             for k in self.voltKnobs }
+        
+        with open(self.picklepath_volt, mode='wb') as f_volt:
+            pickle.dump(self.voltDict, f_volt)
+        
+        
+        
     def updateVoltages(self):
         for k in self.voltDict:
             v = self.voltDict[k]
@@ -373,18 +402,22 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.voltKnobs[k].setValue(v)
             else:
                 self.voltKnobs[k].setCurrentText(v)
+        
+        with open(self.picklepath_volt, mode='wb') as f_volt:
+            pickle.dump(self.voltDict, f_volt)
+        
 
 
     def saveVoltages(self):
         self.gatherVoltages()
-        fname, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', 'C:\\Data\\',
+        fname, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', self.dataFolder,
                                                           )
         if os.path.exists(fname): os.remove(fname)
         with open(fname, mode='x') as f:
             f.write( json.dumps(self.voltDict) ) 
 
     def loadVoltages(self):
-        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', 'C:\\Data\\2021\\November\\Gessner\\Scripts',
+        fname, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File', self.dataFolder,
                                                           )
         with open(fname, mode='r') as f:
             self.voltDict = json.loads( ''.join( f.readlines() ) ) 
@@ -614,14 +647,17 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
             
             
     def tableClick(self):
-        nrows = self.tableofDelayRanges.rowCount()
+        nrows = self.tableOfDelayRanges.rowCount()
         npts = 0
         for n in range(nrows):
-            startpt = self.tableofDelayRanges.item(n,0)
-            endpt = self.tableofDelayRanges.item(n,1)
-            stepsize = self.tableofDelayRanges.item(n,2)
-            currnpts = (endpt - startpt)//stepsize
-            npts = npts + currnpts
+            try:
+                startpt = int(self.tableOfDelayRanges.item(n,0).text())
+                endpt = int(self.tableOfDelayRanges.item(n,1).text())
+                stepsize = int(self.tableOfDelayRanges.item(n,2).text())
+                currnpts = (endpt - startpt)//stepsize
+                npts = npts + currnpts
+            except:
+                pass
             
         totaltime = npts * self.acquisitionTimePerStepSecsSpinBox.value()
         
@@ -637,7 +673,11 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         CalBV = self.doubleSpinBox_CalBV.value()
         
         self.calDict = {'CalAH': CalAH, 'CalAV':CalAV, 'CalBH':CalBH, 'CalBV':CalBV}
-        self.settings.setValue('PicomotorCal', self.calDict)
+        self.caltuple = (CalAH, CalAV, CalBH, CalBV)
+        with open(self.picklepath_cal, mode='wb') as f:
+            pickle.dump(self.calDict, f)
+            # pickle.dump(self.caltuple, f)
+        # self.settings.setValue('PicomotorCal', self.calDict)
         
         Hdev = self.spinBox_DevH.value()
         Vdev = self.spinBox_DevV.value()
