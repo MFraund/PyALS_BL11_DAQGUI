@@ -130,7 +130,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
         #%% Devices
         self.ini_file = 'tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
-        # self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
+        #self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
         
         self.tdc = scTDC.Device(inifilepath=self.ini_file,
                         autoinit=False) #TDC(debug=self.DEBUG)
@@ -152,11 +152,11 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushApplyVoltages.clicked.connect(     self.applyVoltages     )
         self.pushSetSafeState.clicked.connect(      self.setSafeState      )
         
-        self.picklepath_volt = os.path.join(self.DAQdirectory, 'DAQ_pickle_volt')
+        # self.picklepath_volt = os.path.join(self.DAQdirectory, 'DAQ_pickle_volt')
         
-        with open(self.picklepath_volt, mode='rb') as f_volt:
-            self.voltDict = pickle.load(f_volt)
-        self.updateVoltages()
+        # with open(self.picklepath_volt, mode='rb') as f_volt:
+        #     self.voltDict = pickle.load(f_volt)
+        # self.updateVoltages()
 
         #%% Phase Shifter Section
         self.pushInitPhaseShifter.clicked.connect( self.initPhaseShifter)
