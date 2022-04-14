@@ -135,8 +135,8 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         # self.ini_file = 'tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
         #self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
         
-        self.tdc = scTDC.Device(inifilepath=self.ini_file,
-                        autoinit=False) #TDC(debug=self.DEBUG)
+        # self.tdc = scTDC.Device(inifilepath=self.ini_file,
+        #                 autoinit=False) #TDC(debug=self.DEBUG)
                         
 
         self.ps = PhaseShifter()
@@ -327,6 +327,9 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def initTDC(self):
            
+        self.tdc = scTDC.Device(inifilepath=self.ini_file,
+                autoinit=False) #TDC(debug=self.DEBUG)
+        
         retcode, errmsg = self.tdc.initialize()
         if retcode < 0:
             print("Error during initialization : ({}) {}".format(errmsg, retcode))
