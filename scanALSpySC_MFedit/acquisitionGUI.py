@@ -129,7 +129,10 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
         #%% Devices
-        self.ini_file = 'tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
+        self.radioButton_ExtStart_ini.clicked.connect(self.inifile_radio)
+        self.radioButton_FreeRun_ini.clicked.connect(self.inifile_radio)
+        self.inifile_radio()
+        # self.ini_file = 'tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
         #self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
         
         self.tdc = scTDC.Device(inifilepath=self.ini_file,
@@ -144,7 +147,8 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushInitTDC.clicked.connect(  self.initTDC   )
         self.pushDeinitTDC.clicked.connect(self.deinitTDC ) 
         self.pushSelectIni.clicked.connect(self.selectIniFile ) 
-        self.iniFileLineEdit.setText(os.path.basename(self.ini_file))
+        
+        
 
         #%% Prodigy Section
         self.pushConnectProdigy.clicked.connect(    self.connectProdigy    )
@@ -475,6 +479,14 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
     def scanKinEng(self):
         pass
 
+    def inifile_radio(self):
+        if self.radioButton_ExtStart_ini.isChecked():
+            self.ini_file = 'tdc_gpx3_from_surface_concept_with_ext_start.ini' ######Change to be same folder
+            
+        elif self.radioButton_FreeRun_ini.isChecked():
+            self.ini_file = 'tdc_gpx3_from_surface_concept.ini' ######Change to be same folder
+        
+        self.iniFileLineEdit.setText(os.path.basename(self.ini_file))
 
     #%% Phase Shifter Methods
     def initPhaseShifter(self):

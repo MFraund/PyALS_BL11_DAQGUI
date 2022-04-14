@@ -9,8 +9,8 @@ import numpy as np
 
 
 #%% Deviation values measured as xraycenter - lasercenter
-horizontal_deviation = 19
-vertical_deviation = -26
+horizontal_deviation = 0
+vertical_deviation = 80
 
 
 
@@ -28,9 +28,14 @@ vertical_deviation = -26
 ########### Leave this alone ########
 
 #%% Calibrated manipulator-to-picomotor factors
-Aspmx = 0.190
-Aspmy = 0.610
-Bspmx = 0.212
+#Aspmx = 0.190
+#Aspmy = 0.610
+#Bspmx = 0.212
+#Bspmy = -0.256
+
+Aspmx = 0.129
+Aspmy = 0.608
+Bspmx = 0.280
 Bspmy = -0.256
 
 #%% Solving Eqn

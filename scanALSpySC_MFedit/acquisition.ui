@@ -94,6 +94,48 @@
       <string>Select</string>
      </property>
     </widget>
+    <widget class="QGroupBox" name="groupBox_Select_ini">
+     <property name="geometry">
+      <rect>
+       <x>249</x>
+       <y>39</y>
+       <width>171</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Select .ini file</string>
+     </property>
+     <widget class="QRadioButton" name="radioButton_FreeRun_ini">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>82</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Free Run</string>
+      </property>
+     </widget>
+     <widget class="QRadioButton" name="radioButton_ExtStart_ini">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>10</y>
+        <width>82</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Ext. Start</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
@@ -1522,6 +1564,7 @@
      </property>
      <property name="font">
       <font>
+       <weight>50</weight>
        <italic>true</italic>
        <bold>false</bold>
        <kerning>true</kerning>
@@ -1542,7 +1585,7 @@
      <x>0</x>
      <y>0</y>
      <width>988</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
