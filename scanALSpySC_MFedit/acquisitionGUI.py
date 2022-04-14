@@ -156,11 +156,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushApplyVoltages.clicked.connect(     self.applyVoltages     )
         self.pushSetSafeState.clicked.connect(      self.setSafeState      )
         
-        # self.picklepath_volt = os.path.join(self.DAQdirectory, 'DAQ_pickle_volt')
         
-        # with open(self.picklepath_volt, mode='rb') as f_volt:
-        #     self.voltDict = pickle.load(f_volt)
-        # self.updateVoltages()
 
         #%% Phase Shifter Section
         self.pushInitPhaseShifter.clicked.connect( self.initPhaseShifter)
@@ -230,6 +226,13 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
                         # '"Aux Voltage"'             : self.auxVoltageSpinBox,
                         }
         self.voltDict = {}
+        
+        self.picklepath_volt = os.path.join(self.DAQdirectory, 'DAQ_pickle_volt')
+        
+        if os.path.exists(self.picklepath_volt):
+            with open(self.picklepath_volt, mode='rb') as f_volt:
+                self.voltDict = pickle.load(f_volt)
+            self.updateVoltages()
         
         self.pushSaveVoltages.clicked.connect( self.saveVoltages )
         self.pushLoadVoltages.clicked.connect( self.loadVoltages )
