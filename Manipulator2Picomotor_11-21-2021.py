@@ -9,8 +9,8 @@ import numpy as np
 
 
 #%% Deviation values measured as xraycenter - lasercenter
-horizontal_deviation = 0
-vertical_deviation = 80
+horizontal_deviation = 19.8
+vertical_deviation = -84.2
 
 
 
@@ -50,5 +50,6 @@ deviation_matrix = [horizontal_deviation, vertical_deviation]
 B = np.array(deviation_matrix)
 
 X = np.linalg.inv(A).dot(B)
-print(X)
+print('Move picomotor A ' + str(X[0]) + ' steps')
+print('Move picomotor B ' + str(X[1]) + ' steps')
 

@@ -336,6 +336,7 @@ class AcquisitionUI(QtWidgets.QMainWindow, Ui_MainWindow):
         retcode, errmsg = self.tdc.initialize()
         if retcode < 0:
             print("Error during initialization : ({}) {}".format(errmsg, retcode))
+            print(self.ini_file)
             return
         
 
