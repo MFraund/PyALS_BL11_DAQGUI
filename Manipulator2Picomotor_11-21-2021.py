@@ -9,8 +9,8 @@ import numpy as np
 
 
 #%% Deviation values measured as xraycenter - lasercenter
-horizontal_deviation = 19.8
-vertical_deviation = -84.2
+horizontal_deviation = 0
+vertical_deviation = 33.7
 
 
 
